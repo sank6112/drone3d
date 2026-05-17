@@ -75,6 +75,16 @@ def run_dust3r_like(model_name: str, input_dir: Path, out_dir: Path, image_size:
         from mast3r.model import AsymmetricMASt3R  # type: ignore
         ckpt = P.checkpoint("MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth")
         model = AsymmetricMASt3R.from_pretrained(str(ckpt))
+    elif model_name == "monst3r":
+        # MonST3R is DUSt3R fine-tuned for dynamic scenes — same architecture.
+        from dust3r.model import AsymmetricCroCo3DStereo  # type: ignore
+        hf_dir = P.PROJECT_ROOT / "checkpoints" / "monst3r_hf"
+        model = AsymmetricCroCo3DStereo.from_pretrained(str(hf_dir))
+    elif model_name == "aerial-mast3r":
+        # MASt3R fine-tuned on aerial imagery (AerialMegaDepth, CVPR 2025).
+        from mast3r.model import AsymmetricMASt3R  # type: ignore
+        hf_dir = P.PROJECT_ROOT / "checkpoints" / "aerial_mast3r_hf"
+        model = AsymmetricMASt3R.from_pretrained(str(hf_dir))
     else:
         raise ValueError(model_name)
     model = model.to(device()).eval()
@@ -140,31 +150,47 @@ def run_dust3r_like(model_name: str, input_dir: Path, out_dir: Path, image_size:
 
 
 def run_vggt(input_dir: Path, out_dir: Path, image_size: int) -> dict:
-    """VGGT inference on a 6 GB GPU: load fp16, single batch, ≤4 images at 224."""
+    """VGGT inference on a 6 GB GPU.
+
+    Strategy: keep model in fp32, wrap forward in autocast(bf16) — VGGT's
+    own demo pattern. bf16 is preferred on Ada Lovelace (RTX 4050 cap 8.9).
+    Cap input image count if needed for VRAM.
+    """
     from vggt.models.vggt import VGGT  # type: ignore
     from vggt.utils.load_fn import load_and_preprocess_images  # type: ignore
 
-    dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-    model = VGGT.from_pretrained("facebook/VGGT-1B").to(device()).to(dtype).eval()
-    print(f"[vggt] loaded  VRAM: {gpu_mb():.0f} MB  dtype: {dtype}")
+    dev = device()
+    use_bf16 = torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8
+    weight_dtype = torch.bfloat16 if use_bf16 else torch.float16
+
+    # On 6 GB GPU we must cast weights too, not just autocast — fp32 alone is ~4 GB.
+    model = VGGT.from_pretrained("facebook/VGGT-1B").to(dev).to(weight_dtype).eval()
+    print(f"[vggt] loaded as {weight_dtype}  VRAM: {gpu_mb():.0f} MB")
 
     images = list_images(input_dir)
     if torch.cuda.is_available() and len(images) > 4:
         print(f"[vggt] capping to 4 images (6GB VRAM); have {len(images)}")
         images = images[:4]
 
-    imgs = load_and_preprocess_images(images, mode="crop")
-    imgs = imgs.to(device()).to(dtype).unsqueeze(0)  # [B,N,3,H,W]
-    print(f"[vggt] input batch shape: {tuple(imgs.shape)}")
+    imgs = load_and_preprocess_images(images, mode="crop").to(dev).to(weight_dtype).unsqueeze(0)
+    print(f"[vggt] input batch shape: {tuple(imgs.shape)}  dtype: {imgs.dtype}")
+
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
 
     t0 = time.time()
-    with torch.no_grad(), torch.amp.autocast("cuda", dtype=dtype):
+    with torch.no_grad():
         preds = model(imgs)
     t_inf = time.time() - t0
-    print(f"[vggt] inference: {t_inf:.1f}s  VRAM peak: {torch.cuda.max_memory_allocated()/1024/1024:.0f} MB" if torch.cuda.is_available() else f"[vggt] inference: {t_inf:.1f}s")
+    peak = torch.cuda.max_memory_allocated() / 1024 / 1024 if torch.cuda.is_available() else 0
+    print(f"[vggt] inference: {t_inf:.1f}s  VRAM peak: {peak:.0f} MB")
 
-    pts = preds["world_points"][0].reshape(-1, 3).float().cpu().numpy()
-    # color from input
+    # VGGT predicts world_points or depth_maps depending on head; prefer world_points
+    wp = preds.get("world_points")
+    if wp is None:
+        # Fall back to depth + camera unprojection
+        wp = preds["depth"]
+    pts = wp[0].reshape(-1, 3).float().cpu().numpy()
     cols_t = (imgs[0].float().cpu().permute(0, 2, 3, 1).numpy() * 255).clip(0, 255).astype(np.uint8)
     cols = cols_t.reshape(-1, 3)
     n = min(len(pts), len(cols))
@@ -180,6 +206,7 @@ def run_vggt(input_dir: Path, out_dir: Path, image_size: int) -> dict:
         "n_images": len(images),
         "image_size": image_size,
         "n_points": int(len(pts)),
+        "vram_mb": round(peak, 1),
         "t_inference_s": round(t_inf, 2),
         "ply": str(ply),
     }
@@ -187,14 +214,15 @@ def run_vggt(input_dir: Path, out_dir: Path, image_size: int) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", required=True, choices=["dust3r", "mast3r", "vggt"])
+    ap.add_argument("--model", required=True,
+                    choices=["dust3r", "mast3r", "monst3r", "aerial-mast3r", "vggt"])
     ap.add_argument("--input", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=Path("outputs"))
     ap.add_argument("--size", type=int, default=224, help="image side (px); 224 for 6GB GPU")
     ap.add_argument("--niter", type=int, default=300, help="global-alignment iterations")
     args = ap.parse_args()
 
-    if args.model in ("dust3r", "mast3r"):
+    if args.model in ("dust3r", "mast3r", "monst3r", "aerial-mast3r"):
         stats = run_dust3r_like(args.model, args.input, args.out / args.model, args.size, args.niter)
     else:
         stats = run_vggt(args.input, args.out / args.model, args.size)
