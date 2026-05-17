@@ -1,0 +1,22 @@
+name: drone3d
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pytorch=2.5.1
+  - torchvision=0.20.1
+  - pytorch-cuda=12.1
+  - cudatoolkit
+  - numpy<2.0
+  - scipy
+  - matplotlib
+  - opencv
+  - pillow
+  - tqdm
+  - pyyaml
+  - jupyterlab
+  - pip:
+      - -r requirements.txt

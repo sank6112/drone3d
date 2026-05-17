@@ -1,0 +1,45 @@
+# Data, outputs, large artifacts — never commit
+data/
+outputs/
+checkpoints/
+*.ply
+*.npz
+*.npy
+*.pth
+*.ckpt
+*.mp4
+*.MP4
+*.mov
+*.MOV
+*.bin
+*.ulg
+*.tlog
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.mypy_cache/
+.ruff_cache/
+
+# Env
+.venv/
+venv/
+env/
+.env
+.env.local
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Third-party clones (use git submodules or document install)
+third_party/
+
+# Local backup we cloned earlier — reference only, not part of the project
+github_backup/

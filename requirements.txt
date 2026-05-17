@@ -1,0 +1,30 @@
+# Pinned for reproducibility. Update with care.
+
+# 3D / geometry
+open3d==0.18.0
+trimesh==4.4.7
+plyfile==1.0.3
+
+# Foundation-model deps
+einops==0.8.0
+huggingface-hub>=0.24.0
+safetensors>=0.4.0
+roma==1.5.0
+gradio>=4.0  # optional demo UI for DUSt3R/MASt3R
+
+# Training / fine-tuning
+peft>=0.13.0   # LoRA
+accelerate>=0.34.0
+wandb>=0.18.0  # optional but useful for ablation tracking
+
+# Drone telemetry parsing
+pymavlink>=2.4.41   # ArduPilot .bin / .tlog
+pyulog>=1.2.0       # PX4 .ulg
+
+# Evaluation
+scikit-image>=0.24
+lpips>=0.1.4   # perceptual metric for NVS comparisons
+
+# Dev / lint
+ruff>=0.7.0
+pytest>=8.0
