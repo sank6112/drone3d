@@ -28,11 +28,14 @@ Adaptation runs **during a flight**, not as an offline pre-training pass.
 
 The contribution is **the training signal + when it runs + which backbone**. LoRA is the parameter-efficient training mechanism; we will ablate it against adapter layers and decoder-only fine-tuning.
 
-## Target venue
+## Target venue and timeline
 
-- **Primary:** WACV 2027 (~July 2026 deadline) or CVPR 2027 (~Nov 2026 deadline) main conference.
-- **Fallback:** CVPR/ICCV workshop on UAVs / EarthVision.
-- **Stretch:** Journal (IJCV / ISPRS J. Photogrammetry) — only if results clearly exceed conference bar.
+We are not locked to a 6-month sprint. Two tracks, decided at week ~16 based on results:
+
+- **Track A — Conference (preferred if competitive at week 16):** CVPR 2027 (~Nov 2026 deadline) main conference. ~6 month total runway.
+- **Track B — Journal (if results are exceptional or we want to extend scope):** IJCV / ISPRS J. Photogrammetry, ~9 month runway. Allows deeper ablations, more datasets, a hardware-deployment section tied to the encoder module.
+- **Floor (guaranteed):** CVPR/ICCV workshop on UAVs / EarthVision — submission window in early 2027.
+- **arXiv preprint:** posted as soon as Phase 6 has any non-trivial positive result, to establish priority against scoop risk.
 
 ## Phased plan
 
@@ -87,11 +90,13 @@ The contribution is **the training signal + when it runs + which backbone**. LoR
 - Blender drone flights over procedural urban scenes → RGB + GT depth + GT poses + simulated noisy GPS/IMU.
 - Used for: (a) clean controlled ablation of each loss term, (b) sanity-check telemetry noise robustness.
 
-### Phase 8 — Ablations, paper, figures *(week 8–12)*
+### Phase 8 — Ablations, paper, figures *(week 8–16 conference / week 8–28 journal)*
 - Ablation matrix: each loss term × LoRA rank × frozen-vs-unfrozen × backbone choice.
 - Failure-case analysis.
 - Publication figures (300dpi PNG + vector PDF).
-- LaTeX draft, then iterate.
+- arXiv preprint at the earliest credible result (week ~12–14).
+- Conference track: LaTeX draft week 12–16, submit week 16.
+- Journal track (optional extension): additional datasets, deployment section on the encoder/RC module, extra ablations, larger compute runs, weeks 16–36.
 
 ## Compute plan
 

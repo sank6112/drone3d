@@ -1,9 +1,9 @@
 # Pinned for reproducibility. Update with care.
 
 # 3D / geometry
-open3d==0.18.0
-trimesh==4.4.7
-plyfile==1.0.3
+open3d>=0.19.0  # >=0.19 supports numpy 2.x
+trimesh>=4.4.0
+plyfile>=1.0.3
 
 # Foundation-model deps
 einops==0.8.0
