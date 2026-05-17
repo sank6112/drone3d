@@ -25,4 +25,28 @@ VGGT-1B occupies ~4 GB. On the laptop's 6 GB GPU it leaves ~2 GB for inputs/acti
 
 ## Point3R / StreamVGGT / CUT3R checkpoints
 
-Not downloaded yet. Phase 1 will pull them from the respective HuggingFace / project pages. Smoke test currently only confirms imports.
+All downloaded:
+- `checkpoints/point3r.pth` (3.1 GB, Google Drive)
+- `checkpoints/cut3r_512_dpt_4_64.pth` (3.0 GB, Google Drive)
+- `checkpoints/streamvggt_hf/` (5 GB safetensors + 5 GB .pth, HuggingFace)
+- `checkpoints/monst3r_hf/` (2.2 GB, HuggingFace)
+- `checkpoints/aerial_mast3r_hf/` (2.7 GB, HuggingFace)
+
+## CUT3R demo at non-512 image size
+
+`third_party/cut3r/demo.py --size 224` and `--size 384` trigger:
+```
+File "src/croco/models/pos_embed.py", line 172, in forward
+    D, int(positions.max()) + 1, tokens.device, tokens.dtype
+RuntimeError: CUDA error: device-side assert triggered
+```
+
+The 512-DPT checkpoint expects 512-resolution positional embeddings. Two paths:
+1. Download the 224-linear checkpoint (`cut3r_224_linear_4.pth`) and use it at 224.
+2. Run at 512 — won't fit on 6 GB GPU; needs cloud.
+
+Deferred until cloud runs. Documented but not blocking.
+
+## Point3R / StreamVGGT inference
+
+Neither ships a clean `demo.py` for arbitrary input. Point3R has `eval/relpose/launch.py` for the relative-pose benchmark; StreamVGGT has `demo_gradio.py` (UI). Both need a custom wrapper script for our pipeline. Deferred to Phase 4 cloud runs.
