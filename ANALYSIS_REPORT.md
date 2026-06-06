@@ -1,7 +1,7 @@
 # Drone3D — Deep Analysis Report
 
-**Date:** 2026-05-17
-**Status after:** Phase 0 (env) + Phase 1 (ground-level baselines) + Phase 2 partial (aerial baselines)
+**Last updated:** 2026-06-06 (results unchanged from 2026-05-17 session; next update on Phase 5 first-flight ingest)
+**Status after:** Phase 0 (env) + Phase 1 (ground-level baselines) + Phase 2 partial (aerial baselines) + Phase 3 (eval framework + ETH3D courtyard pose eval)
 **GPU:** RTX 4050 Laptop, 6 GB VRAM
 **All experiments at 224 px, batch_size=1, CPU global alignment, 300 alignment iterations**
 
@@ -179,9 +179,10 @@ Reusing the phase numbering from `PLAN.md`:
 ## 9. What I recommend doing next, in order
 
 ### Immediate (this week)
-1. **Build `scripts/03_evaluate.py`** — Chamfer / F-score / ATE / RPE against ground truth. Needed for every downstream claim. ~half day of work.
-2. **Ship `CAPTURE_PROTOCOL.md` to your collaborator** with the explicit ask: one ~90 s orbital flight + Pixhawk `.bin` log.
-3. **Extract one ETH3D scene** (e.g., courtyard) so we have laser-scan ground truth to validate Phase 3 against.
+1. ~~Build `scripts/03_evaluate.py`~~ — ✅ done (Phase 3).
+2. ~~Ship `CAPTURE_PROTOCOL.md`~~ — ✅ in collaborator's hands; drone now also being set up locally with the teammate handling Pixhawk telemetry logging. First flight imminent.
+3. ~~Extract ETH3D courtyard~~ — ✅ done; quantitative ATE/RPE in Section 1.
+4. **Build `scripts/extract_frames.py` + `scripts/parse_telemetry.py` + `scripts/sync_video_telemetry.py`** — these are now the critical path. Drone capture is no longer the bottleneck; the *processing* pipeline is.
 
 ### Next 2 weeks
 4. **Subprocess-wrap Point3R, CUT3R, StreamVGGT** so they appear in the baseline matrix (`scripts/04_benchmark_subprocess.py`).
