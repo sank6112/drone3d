@@ -1,6 +1,7 @@
 # Drone3D — Deep Analysis Report
 
 **Last updated:** 2026-06-06 (results unchanged from 2026-05-17 session; next update on Phase 5 first-flight ingest)
+**2026-09-12 note:** project restored from GitHub after local loss; a **Product Track** was added (deployable `scripts/reconstruct.py`, video → 3D). No new experiments since 2026-06-06 — all results below stand as-is.
 **Status after:** Phase 0 (env) + Phase 1 (ground-level baselines) + Phase 2 partial (aerial baselines) + Phase 3 (eval framework + ETH3D courtyard pose eval)
 **GPU:** RTX 4050 Laptop, 6 GB VRAM
 **All experiments at 224 px, batch_size=1, CPU global alignment, 300 alignment iterations**

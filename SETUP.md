@@ -14,37 +14,35 @@ python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_
 
 ## 2. Foundation model repos
 
-Cloned into `third_party/` (gitignored). Each is a separate upstream repo; install each in editable mode so we can patch and trace.
+Cloned into `third_party/` (gitignored). **Only VGGT is pip-installable.** The CroCo-family repos (mast3r, StreamVGGT, Point3R, monst3r, cut3r) ship no `setup.py` and are used as plain folders via `src/drone3d/paths.py` — do NOT `pip install -e` them (it errors; see KNOWN_ISSUES.md).
 
 ```bash
 mkdir -p third_party && cd third_party
 
-# DUSt3R + MASt3R (MASt3R has DUSt3R as a submodule)
+# DUSt3R + MASt3R (MASt3R has DUSt3R as a submodule) — used via paths.py, no pip install
 git clone --recursive https://github.com/naver/mast3r.git
-pip install -e mast3r
 
-# VGGT (CVPR 2025 Best Paper)
+# VGGT (CVPR 2025 Best Paper) — the one repo that IS pip-installable
 git clone https://github.com/facebookresearch/vggt.git
 pip install -e vggt
 
-# StreamVGGT (ICLR 2026)
+# StreamVGGT (ICLR 2026) — used via paths.py
 git clone https://github.com/wzzheng/StreamVGGT.git
-pip install -e StreamVGGT
 
-# Point3R (NeurIPS 2025)
+# Point3R (NeurIPS 2025) — used via paths.py
 git clone https://github.com/YkiWu/Point3R.git
-pip install -e Point3R
 
-# CUT3R (CVPR 2025)
+# CUT3R (CVPR 2025) — used via paths.py
 git clone https://github.com/CUT3R/CUT3R.git || git clone https://github.com/cvg/cut3r.git
 # (URL may shift; check the awesome-DUST3R list if cloning fails)
 
-# MonST3R — only needed for dynamic-scene baseline
+# MonST3R — dynamic-scene baseline only — used via paths.py
 git clone https://github.com/junyi42/monst3r.git
-pip install -e monst3r
 
 cd ..
 ```
+
+> **Minimal deployable stack:** for the Product Track (`scripts/reconstruct.py`) you only need `mast3r` cloned + the DUSt3R and MASt3R-metric checkpoints below. The rest are for the research baseline matrix.
 
 ## 3. Checkpoints
 

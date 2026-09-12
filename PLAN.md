@@ -28,6 +28,27 @@ Adaptation runs **during a flight**, not as an offline pre-training pass.
 
 The contribution is **the training signal + when it runs + which backbone**. LoRA is the parameter-efficient training mechanism; we will ablate it against adapter layers and decoder-only fine-tuning.
 
+---
+
+## Two tracks: Product and Research
+
+This project now runs on **two parallel tracks**. They share the same codebase and backbones but have different deadlines and success criteria.
+
+### Product Track (near-term deliverable — ship first)
+
+A **deployable pipeline** that takes a drone flight **video** and produces a **3D reconstruction** (point cloud / mesh) as a **single entrypoint** (`scripts/reconstruct.py`). This is the promised deliverable and is one module of a larger **SaaS** that also bundles other drone applications (person-following, video recording, etc.), so it must be **importable/callable as a component**, not just a research script.
+
+- **Success criterion:** `python scripts/reconstruct.py --video flight.mp4 --out outputs/run1` runs end to end and writes a colored `.ply` + camera poses, on the local 6 GB card, with no manual frame prep.
+- **Backbone:** MASt3R (metric, fits 6 GB). Telemetry/streaming novelty is *not* required for the product path.
+- **Stages:** video → frame extraction (FPS sample + Laplacian-variance blur filter + SSIM duplicate filter) → MASt3R inference + global alignment → point-cloud/mesh export → (optional) telemetry alignment hook for later.
+- **On-drone note:** the 6 GB laptop path is the reference implementation; the "placed on drone" target is an embedded/edge or ground-station deployment of the same entrypoint. Keep the CLI + a `reconstruct(video, out, ...)` function so it can be wrapped by the SaaS backend.
+
+### Research Track (the paper — layers on top)
+
+Everything below (Phases 0–8) — telemetry-supervised online adaptation on a streaming backbone. This is unblocked the moment drone capture data (video + Pixhawk `.bin`/`.ulg`) arrives from the collaborator, and reuses the Product Track's frame-extraction + reconstruction code.
+
+**Sequencing:** ship the Product Track reconstruction now with public/existing images and any first drone video; keep building the Research Track (losses, telemetry, ablations) in parallel and fold results back into both the paper and the SaaS.
+
 ## Target venue and timeline
 
 We are not locked to a 6-month sprint. Two tracks, decided at week ~16 based on results:
@@ -40,7 +61,7 @@ We are not locked to a 6-month sprint. Two tracks, decided at week ~16 based on 
 ## Phased plan
 
 ### Phase 0 — Project setup *(week 1)*
-- Re-init clean project layout under `/home/rudra/projects/Drone 3d/`.
+- Clean project layout under `/home/rudra/projects/drone3d/` (renamed from `Drone 3d` to drop the space; restored from GitHub 2026-09-12 after local loss).
 - Conda env `drone3d` (Python 3.11, PyTorch 2.5+cu121).
 - Clone & install: DUSt3R, MASt3R, VGGT, StreamVGGT, Point3R, CUT3R, MonST3R, DroneSplat (as reference).
 - Pin all dependency versions in `environment.yml` and `requirements.txt`.

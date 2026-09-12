@@ -1,5 +1,9 @@
 # Known issues
 
+## CroCo-family repos are NOT pip-installable (`pip install -e` fails)
+
+`mast3r/`, `Point3R/`, `StreamVGGT/`, `monst3r/` ship no top-level `setup.py`/`pyproject.toml`, so `pip install -e third_party/mast3r` fails with *"does not appear to be a Python project"* (seen again during the 2026-09-12 restore). This is expected — they are used as plain folders via `src/drone3d/paths.py` (`P.inject("mast3r")` prepends the right subpaths to `sys.path`). Only **VGGT** is genuinely pip-installable. Do **not** rely on a pip install for the others; `SETUP.md` reflects this.
+
 ## Module-name collisions across CroCo-family backbones
 
 All five CroCo-derived repos (`mast3r/`, `cut3r/`, `Point3R/`, `StreamVGGT/`, `monst3r/`) ship modules named `dust3r`, `croco`, and `models`. Once one is imported in a Python process, the others' versions become uninportable because `sys.modules` already holds different code under the same key.
@@ -25,7 +29,7 @@ VGGT-1B occupies ~4 GB. On the laptop's 6 GB GPU it leaves ~2 GB for inputs/acti
 
 ## Point3R / StreamVGGT / CUT3R checkpoints
 
-All downloaded:
+**Note (2026-09-12 restore):** `checkpoints/` is gitignored and was lost with the local folder. Only the deployable MASt3R stack (DUSt3R + MASt3R metric) is being re-downloaded now; the heavier backbones below are re-downloaded on demand for cloud/research runs. Original set:
 - `checkpoints/point3r.pth` (3.1 GB, Google Drive)
 - `checkpoints/cut3r_512_dpt_4_64.pth` (3.0 GB, Google Drive)
 - `checkpoints/streamvggt_hf/` (5 GB safetensors + 5 GB .pth, HuggingFace)

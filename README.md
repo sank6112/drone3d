@@ -1,11 +1,28 @@
 # Drone3D
 
-Research project: **online, telemetry-supervised adaptation of streaming 3D foundation models for drone video**.
+Two tracks on one codebase:
 
-## Status (as of 2026-06-06)
+- **Product Track** — a **deployable single-entrypoint pipeline** that turns a drone flight **video into a 3D reconstruction** (`scripts/reconstruct.py`). One module of a larger drone SaaS (alongside person-following, video recording, etc.). Ship-first deliverable.
+- **Research Track** — **online, telemetry-supervised adaptation of streaming 3D foundation models for drone video** (the paper). Layers on top of the same reconstruction code once Pixhawk capture data arrives.
+
+> Restored 2026-09-12 from `sank6112/drone3d` after local loss. `checkpoints/` and `third_party/` are gitignored — re-run `SETUP.md` (or the minimal MASt3R stack) to repopulate them.
+
+## Quick start — Product pipeline
+
+```bash
+conda activate drone3d
+# from a flight video (extracts frames, filters blur/duplicates, reconstructs):
+python scripts/reconstruct.py --video flight.mp4 --out outputs/run1
+# or from a folder of already-extracted frames:
+python scripts/reconstruct.py --frames data/test_real/ --out outputs/run1
+```
+Outputs `reconstruction.ply` (colored, metric — meters), `poses.npz` (cam-to-world), and `result.json`. Runs on the 6 GB RTX 4050 with MASt3R.
+
+## Status (as of 2026-09-12)
 
 | Phase | What | Status |
 |---|---|---|
+| P | **Product pipeline** `reconstruct.py` (video → frames → MASt3R → .ply/poses) | ✅ built; extraction verified, full run pending MASt3R ckpt re-download |
 | 0 | Env + scaffolding | ✅ done |
 | 1 | Ground-level baselines (DUSt3R, MASt3R, MonST3R) on NLE tower | ✅ done |
 | 1 | VGGT / CUT3R / Point3R / StreamVGGT baselines | ⏸ deferred to cloud |
@@ -53,7 +70,7 @@ ANALYSIS_REPORT.md     deep interpretation of every result produced so far
 KNOWN_ISSUES.md        upstream model quirks + workarounds
 SETUP.md               environment install
 src/drone3d/           sys.path injector for the colliding CroCo backbones
-scripts/               00_smoke_test, 01_baseline_inference, 02_compare, 03_evaluate, util_colmap_to_npz
+scripts/               reconstruct (product pipeline), 00_smoke_test, 01_baseline_inference, 02_compare, 03_evaluate, util_colmap_to_npz
 checkpoints/           ~25 GB across 7 foundation-model weights (gitignored)
 third_party/           cloned foundation-model repos (gitignored)
 data/                  test_real (NLE tower), aerial_finearts, aerial_mall, eth3d, eth3d_courtyard
@@ -64,6 +81,7 @@ GitHub: `sank6112/drone3d`.
 
 ## Next steps
 
+0. **Product Track (ship first):** finish MASt3R checkpoint re-download, run `scripts/reconstruct.py` end-to-end on the first real frames/video, then package it as a callable component for the SaaS backend. Telemetry fusion plugs into the marked hook in `reconstruct_frames()`.
 1. **Phase 5 pipeline build-out** (now unblocked since the drone is being set up locally with telemetry logging):
    - `scripts/extract_frames.py` — FPS sampling, Laplacian-blur filter, SSIM duplicate filter.
    - `scripts/parse_telemetry.py` — `.bin` (ArduPilot via `pymavlink`) / `.ulg` (PX4 via `pyulog`) → per-frame CSV of (lat, lon, alt, roll, pitch, yaw, ax/ay/az, gx/gy/gz).

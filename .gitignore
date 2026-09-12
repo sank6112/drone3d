@@ -43,3 +43,6 @@ third_party/
 
 # Local backup we cloned earlier — reference only, not part of the project
 github_backup/
+
+# Transient restore/setup log
+.restore.log
