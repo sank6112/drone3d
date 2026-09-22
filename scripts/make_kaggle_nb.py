@@ -15,7 +15,7 @@ cells = [
  code("import os, subprocess, glob, json\n",
       "os.chdir('/kaggle/working')\n",
       "if not os.path.isdir('drone3d'):\n",
-      "    subprocess.run(['git','clone','-b','kaggle-setup','--depth','1',\n",
+      "    subprocess.run(['git','clone','--depth','1',\n",
       "                    'https://github.com/sank6112/drone3d'], check=True)\n",
       "os.chdir('/kaggle/working/drone3d'); print('cwd:', os.getcwd())"),
 
@@ -24,6 +24,14 @@ cells = [
  code("os.environ['RUBBLE']='0'   # '1' to also fetch Rubble\n",
       "os.environ['MAST3R']='1'\n",
       "!bash scripts/setup_kaggle.sh"),
+
+ md("## 2b. Smoke test (~2 min) — confirm GPU + deps before the long runs\n",
+    "Runs 500 steps on Sculpture at low res. If a `.splat` appears, the environment is good."),
+ code("subprocess.run(['bash','scripts/train_quality.sh',\n",
+      "                'data/dronesplat/Sculpture','4','outputs/_smoke','300000','500',\n",
+      "                '--save-steps','500','--eval-steps','500'])\n",
+      "ok = os.path.exists('outputs/_smoke/model.splat')\n",
+      "print('SMOKE TEST', 'PASSED ✅' if ok else 'FAILED ❌ — check the log above')"),
 
  md("## 3. Ablation on Sculpture — which quality knobs actually help?\n",
     "Short 7k runs at factor 2 so we can compare knobs fast, then lock the winner."),

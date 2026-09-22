@@ -8,13 +8,14 @@ Goal: use Kaggle's free **16 GB** GPU to push reconstruction quality well past t
 2. In the right-hand **Settings** panel:
    - **Accelerator → GPU P100** (single 16 GB; simplest). `GPU T4 x2` also works but needs multi-GPU flags.
    - **Internet → ON** (required — the notebook downloads code, checkpoints, and data).
-   - **Persistence → Variables and Files** (optional, keeps `/kaggle/working` between sessions).
+   - **Persistence → Variables and Files** (**recommended ON**: keeps `/kaggle/working` — incl. the downloaded data/checkpoints — between sessions, so the ~10 min download happens only once).
 3. Run cells top to bottom. For long jobs use **Save Version → Save & Run All (Commit)** — it runs up to **9 h** in the background after you close the tab.
 
 ## What the notebook does
 | Step | Action |
 |---|---|
-| 1–2 | Clone `sank6112/drone3d` (branch `kaggle-setup`) and run `scripts/setup_kaggle.sh` (installs gsplat + MASt3R, downloads checkpoints from HuggingFace/Naver, DroneSplat via gdown, Rubble via wget). |
+| 1–2 | Clone `sank6112/drone3d` and run `scripts/setup_kaggle.sh` (installs gsplat + MASt3R, downloads checkpoints from HuggingFace/Naver, DroneSplat via gdown, Rubble via wget). Nothing is uploaded — all from public sources. |
+| 2b | **Smoke test** (~2 min): 500 steps on Sculpture to confirm GPU + deps before the long runs. |
 | 3 | **Ablation** on Sculpture (7k @ factor 2): baseline → +antialiased → +app_opt → +bilateral → +pose_opt, with a PSNR/SSIM/LPIPS table. |
 | 4 | **Final** full-res Sculpture (factor 1, 30k, 2.5 M Gaussians) with the winning knobs. |
 | 5 | **Product path**: MASt3R poses from raw images (20 frames — Kaggle RAM allows more than the laptop) → splat with `--pose_opt`. |
