@@ -17,7 +17,10 @@ cells = [
       "if not os.path.isdir('drone3d'):\n",
       "    subprocess.run(['git','clone','--depth','1',\n",
       "                    'https://github.com/sank6112/drone3d'], check=True)\n",
-      "os.chdir('/kaggle/working/drone3d'); print('cwd:', os.getcwd())"),
+      "else:  # persistence ON -> make sure we're on the latest master, not stale code\n",
+      "    subprocess.run(['git','-C','drone3d','pull','--ff-only'])\n",
+      "os.chdir('/kaggle/working/drone3d'); print('cwd:', os.getcwd())\n",
+      "subprocess.run(['git','log','--oneline','-1'])"),
 
  md("## 2. Environment + data setup\n",
     "Set `RUBBLE=1` to also pull Mill-19 Rubble (9.2 GB, the big aerial scene)."),
