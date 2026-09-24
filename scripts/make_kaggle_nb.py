@@ -8,7 +8,9 @@ def code(*s): return {"cell_type": "code", "metadata": {}, "execution_count": No
 
 cells = [
  md("# drone3d — quality-max reconstruction on Kaggle\n",
-    "**Before running:** Settings → Accelerator = **GPU P100**, and **Internet = ON**.\n",
+    "**Before running (Settings panel):** Accelerator = **GPU T4 ×2** (or P100 — both 16 GB), "
+    "**Internet = ON**, **Persistence = ON**. **Not TPU** (our stack is CUDA/PyTorch). "
+    "The notebook uses **one** 16 GB GPU (the 2nd T4 sits idle); MCMC caps keep VRAM bounded so it won't OOM-crash mid-run.\n",
     "Everything is fetched from public sources; nothing is uploaded. Use *Save & Run All (Commit)* for 9 h background runs."),
 
  md("## 1. Clone the repo"),
@@ -66,7 +68,7 @@ cells = [
     "Edit `BEST_FLAGS` from the ablation above if a different combo won."),
  code("BEST_FLAGS=['--antialiased','--app_opt','--pose_opt']\n",
       "subprocess.run(['bash','scripts/train_quality.sh',\n",
-      "                'data/dronesplat/Sculpture','1','outputs/sculpture_final','2500000','30000',*BEST_FLAGS])"),
+      "                'data/dronesplat/Sculpture','1','outputs/sculpture_final','2000000','30000',*BEST_FLAGS])"),
 
  md("## 5. Product path — MASt3R poses from raw images (no COLMAP)\n",
     "Kaggle's 32 GB RAM allows more frames than the 6 GB laptop; `--pose_opt` refines the MASt3R poses."),
@@ -75,14 +77,14 @@ cells = [
       "                '--out','outputs/sculpture_mast3r_colmap','--max-frames','20'])\n",
       "subprocess.run(['bash','scripts/train_quality.sh',\n",
       "                'outputs/sculpture_mast3r_colmap','1','outputs/sculpture_mast3r_final',\n",
-      "                '2000000','30000','--antialiased','--app_opt','--pose_opt'])"),
+      "                '1500000','30000','--antialiased','--app_opt','--pose_opt'])"),
 
  md("## 6. Rubble — big aerial scene (needs RUBBLE=1 in step 2)"),
  code("if os.path.isdir('data/rubble/rubble-pixsfm/train/rgbs'):\n",
       "    subprocess.run(['python','scripts/meganerf_to_colmap.py',\n",
       "                    '--src','data/rubble/rubble-pixsfm/train','--out','data/rubble_sub','--n','500','--long','1024'])\n",
       "    subprocess.run(['bash','scripts/train_quality.sh',\n",
-      "                    'data/rubble_sub','1','outputs/rubble_final','3000000','40000',\n",
+      "                    'data/rubble_sub','1','outputs/rubble_final','2000000','40000',\n",
       "                    '--antialiased','--app_opt','--use_bilateral_grid'])\n",
       "else:\n",
       "    print('Rubble not present — set RUBBLE=1 in step 2 and re-run setup.')"),
