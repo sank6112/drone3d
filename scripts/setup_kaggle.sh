@@ -14,6 +14,10 @@ mkdir -p third_party checkpoints data outputs
 echo "==== [1/5] gsplat + trainer deps ===="
 pip -q install gsplat==1.5.3 gdown || pip -q install gsplat gdown
 [ -d third_party/gsplat ] || git clone --depth 1 --branch v1.5.3 https://github.com/nerfstudio-project/gsplat third_party/gsplat
+# gsplat's examples/datasets/ ships no __init__.py, so on Kaggle the preinstalled
+# HuggingFace 'datasets' package shadows it -> 'No module named datasets.colmap'.
+# Make it a real package so it wins when examples/ is first on PYTHONPATH.
+touch third_party/gsplat/examples/datasets/__init__.py
 # fused-ssim / fused-bilagrid are CUDA extensions -> must skip build isolation (torch hidden otherwise).
 # Drop the requirements' numpy<2 pin: on Kaggle it would downgrade numpy and break the
 # preinstalled opencv/jax/cupy (and cv2, which dust3r needs). gsplat 1.5.3 works with numpy 2.

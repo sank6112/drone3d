@@ -15,6 +15,8 @@ here() { cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd; }
 ROOT=$(here); cd "$ROOT"
 EXABS=$(readlink -f third_party/gsplat/examples)
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+# ensure gsplat's local datasets/ package isn't shadowed by HF's 'datasets' (Kaggle)
+touch "$EXABS/datasets/__init__.py" 2>/dev/null || true
 
 DATA=$1 FACTOR=$2 RD=$3 CAP=$4 STEPS=$5; shift 5
 EXTRA=("$@")
