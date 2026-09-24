@@ -23,6 +23,14 @@ touch third_party/gsplat/examples/datasets/__init__.py
 # preinstalled opencv/jax/cupy (and cv2, which dust3r needs). gsplat 1.5.3 works with numpy 2.
 grep -viE '^\s*numpy' third_party/gsplat/examples/requirements.txt > /tmp/req_no_numpy.txt
 pip -q install --no-build-isolation -r /tmp/req_no_numpy.txt
+# The rmbrualla/pycolmap fork does `np.uint64(-1)`, which numpy 2 rejects (OverflowError).
+# Kaggle's cv2/torch are built against numpy 2, so we keep numpy 2 and patch this one line
+# instead of downgrading numpy (which would risk ABI breaks in cv2/torch).
+PYC=$(python -c "import importlib.util,sys; s=importlib.util.find_spec('pycolmap'); print(s.submodule_search_locations[0] if s else '')" 2>/dev/null || true)
+if [ -n "$PYC" ] && [ -f "$PYC/scene_manager.py" ]; then
+  sed -i 's/np\.uint64(-1)/np.uint64(2**64 - 1)/g' "$PYC/scene_manager.py"
+  echo "patched pycolmap scene_manager for numpy 2"
+fi
 
 echo "==== [2/5] MASt3R (product front-end) ===="
 if [ "$MAST3R" = "1" ]; then
